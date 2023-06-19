@@ -1,0 +1,4 @@
+[package]
+script_dir = ./scripts
+description = Regularly log footprints of long running connections.
+tags = debugging, footprint, connection, memory
