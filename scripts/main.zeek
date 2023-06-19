@@ -7,6 +7,7 @@ export {
 	option conn_create_expire: interval = 12hr;
 	option min_duration = 60sec;
 	option min_footprint = 1000;
+	option min_footprint_details = 3000;
 	option report_interval = 5min;
 
 	redef enum Log::ID += {
@@ -29,7 +30,7 @@ export {
 }
 
 
-# Tracking all connections.
+# Tracking all active connections.
 global active_connections: set[conn_id] &create_expire=conn_create_expire;
 
 event new_connection(c: connection) {
@@ -38,6 +39,16 @@ event new_connection(c: connection) {
 
 event connection_state_remove(c: connection) {
 	delete active_connections[c$id];
+}
+
+function create_details(c: connection): string {
+	local parts: vector of string = vector();
+	for ( f, field in record_fields(c) ) {
+		if ( field?$value )
+			parts += fmt("%s=%d", cat(f), val_footprint(field$value));
+	}
+
+	return join_string_vec(parts, ",");
 }
 
 event ConnFootprint::log() {
@@ -70,7 +81,7 @@ event ConnFootprint::log() {
 		if ( c$resp?$num_pkts )
 			total_bytes_ip += c$resp$num_pkts;
 
-		local rec = [
+		local rec = Info(
 			$start_time=c$start_time,
 			$uid=c$uid,
 			$id=cid,
@@ -80,7 +91,10 @@ event ConnFootprint::log() {
 			$total_bytes_ip=total_bytes_ip,
 			$footprint=c_footprint,
 			$service=c$service
-		];
+		);
+
+		if ( c_footprint > min_footprint_details )
+			rec$details = create_details(c);
 
 		Log::write(LOG, rec);
 	}
