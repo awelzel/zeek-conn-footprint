@@ -6,8 +6,8 @@ module ConnFootprint;
 export {
 	option conn_create_expire: interval = 12hr;
 	option min_duration          = 2min;
-	option min_footprint         = 3000;
-	option min_footprint_details = 6000;
+	option min_footprint         = 10000;
+	option min_footprint_details = 20000;
 	option report_interval       = 1min;
 
 	redef enum Log::ID += {
