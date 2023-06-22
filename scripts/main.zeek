@@ -41,14 +41,24 @@ event connection_state_remove(c: connection) {
 	delete active_connections[c$id];
 }
 
-function create_details(c: connection): string {
+function record_details(r: any, recurse: count &default=0): string {
 	local parts: vector of string = vector();
-	for ( f, field in record_fields(c) ) {
-		if ( field?$value )
-			parts += fmt("%s=%d", cat(f), val_footprint(field$value));
+	for ( f, field in record_fields(r) ) {
+		if ( field?$value ) {
+			local vfp = val_footprint(field$value);
+			local part = fmt("%s=%d", cat(f), vfp);
+			if ( vfp > 0 ) {  # Add some details if we can.
+				if (field$type_name == /^table\[.*\] of .*/ || field$type_name == /^set\[.+\].*/)
+					part = fmt("%s {entries %d}", part, |field$value|);
+				else if ( field$type_name == /^record .*/ && recurse > 0) {
+					part = fmt("%s {%s}", part, record_details(field$value, recurse - 1));
+				}
+			}
+			parts += part;
+			}
 	}
 
-	return join_string_vec(parts, ",");
+	return join_string_vec(parts, ", ");
 }
 
 event ConnFootprint::log() {
@@ -94,7 +104,7 @@ event ConnFootprint::log() {
 		);
 
 		if ( c_footprint > min_footprint_details )
-			rec$details = create_details(c);
+			rec$details = record_details(c, 1);
 
 		Log::write(LOG, rec);
 	}
