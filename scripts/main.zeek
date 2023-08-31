@@ -1,6 +1,7 @@
-## Script that logs footprints of all connections with durations longer
-## than min_duration. Log entries are only produced if footprint exceeds
-## min_footprint.
+##! Script that logs footprints of all connections with durations longer
+##! than min_duration. Log entries are only produced if footprint exceeds
+##! min_footprint.
+
 module ConnFootprint;
 
 export {
@@ -16,6 +17,7 @@ export {
 
 	type Info: record {
 		ts:             time &log &default=network_time();
+		node:           string &log &default=peer_description;
 		start_time:     time &log;
 		uid:            string &log;
 		history:        string &log;
