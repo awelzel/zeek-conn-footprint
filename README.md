@@ -14,6 +14,7 @@ certain runtime overhead due to the usage of ``val_footprint()``.
 ```
 {
   "ts": 1687514059.546506,
+  "node": "worker-1-1",
   "start_time": 1687513335.154572,
   "uid": "CRwAQ83P7xzkhv6iBc",
   "history": "ShAdD",
